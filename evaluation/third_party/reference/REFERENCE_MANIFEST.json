@@ -1,0 +1,211 @@
+{
+  "schema": "gs_gcp_evaluation_reference_source_bundle_v1",
+  "source_git_head": "52df095d6df61e738c5f9b4b43f076bee289a462",
+  "snapshot_sha256_is_authoritative_git_alone_is_not": true,
+  "files": [
+    {
+      "path": "code/colmap/utils/read_write_model.py",
+      "bytes": 22550,
+      "sha256": "04a1f01f98bef7065e4b66baa6bef4840d42333614191fb535ce11fbfa3b0ba3"
+    },
+    {
+      "path": "code/gcp/check_m3m_gcp_lidar_formal_launch.py",
+      "bytes": 37393,
+      "sha256": "edfa32776d04dda6deb9a5b14de5058c6fd9e9059959dc621b9517ff34b4d702"
+    },
+    {
+      "path": "code/gcp/evaluate_gaussian_gcp_geometry.py",
+      "bytes": 83805,
+      "sha256": "5aa188008a77032789add6d74c96a8e1b500479eddd80a7c8bfcdf596e29a9ef"
+    },
+    {
+      "path": "code/gcp/evaluate_m3m_gcp_lidar_formal_v1.py",
+      "bytes": 53149,
+      "sha256": "a2d14cd5cd53cbee8e2adf358b0c69be9a1e0fdf580e699df93ffc8f081cb96e"
+    },
+    {
+      "path": "code/gcp/evaluate_m3m_native_quarter_geometry.py",
+      "bytes": 23019,
+      "sha256": "353624ab44f8be066a8fd57ba02eaf0d2e5b306973afb7aec21d9a97312d4d8f"
+    },
+    {
+      "path": "code/gcp/evaluate_m3m_native_quarter_rgb_quality.py",
+      "bytes": 37976,
+      "sha256": "aa8f346d7747e7db23b8bcdd1eefe8280ba38ce3aafeae0a4f2e042f5ce71a7e"
+    },
+    {
+      "path": "code/gcp/evaluate_uavgs_lidar_rectangular_roi_v1.py",
+      "bytes": 31274,
+      "sha256": "2854ac30ca24e7c5dc2340b039777d98f56d1ace9851c7d6b713dce439313223"
+    },
+    {
+      "path": "code/gcp/fit_gcp_sim3.py",
+      "bytes": 14391,
+      "sha256": "3a0e2d15bcb46213345f3395fdde9a1fcdefe4d20c8c3bcb531cadb060ae8932"
+    },
+    {
+      "path": "code/gcp/gcp_packet_camera_compatibility.py",
+      "bytes": 93554,
+      "sha256": "060500b62eb673e7808ff75d4a645a5f9b8e1298e93e640e7c08fb0a1d785bab"
+    },
+    {
+      "path": "code/gcp/gcp_pixel_domain_v1_2.py",
+      "bytes": 33435,
+      "sha256": "7090ca93046bfb3269e8606410847b2aa578de86bfcf5f4f19c274c021fc2f09"
+    },
+    {
+      "path": "code/gcp/gcp_pixel_domain_v1_3.py",
+      "bytes": 19408,
+      "sha256": "c5077d2335955145232c4ef630ed3161270d7d7e664730332c2c933f3f7aa690"
+    },
+    {
+      "path": "code/gcp/m3m_gcp_lidar_artifacts.py",
+      "bytes": 16179,
+      "sha256": "4b4ae962423da39fdc1f4fc22da82cfa6f4cfc3cd0d7f8315ccc711698d04f05"
+    },
+    {
+      "path": "code/gcp/m3m_native_quarter_protocol.py",
+      "bytes": 18578,
+      "sha256": "ba2fdeaec6baecef79b3b0f2e59e78426c82b5a71dc288d7733bfa8fc4aca241"
+    },
+    {
+      "path": "code/gcp/metric_depth_packet.py",
+      "bytes": 28385,
+      "sha256": "844405546df9f96d44ca70c1d73123ffa6f36e1c2fd1b9cb037f5a993678b246"
+    },
+    {
+      "path": "code/gcp/rgb_quality_contract.py",
+      "bytes": 19434,
+      "sha256": "c2750df1841b9212230802e77e245cb8ac2c12c9ef8627f9f7825f17a86a8bd1"
+    },
+    {
+      "path": "code/gcp/test_evaluate_m3m_gcp_lidar_formal_v1_numeric.py",
+      "bytes": 3478,
+      "sha256": "3e841c9bd9385206899d42544838b5db49c6033fc72aa4daf9bd8d61e42d69a3"
+    },
+    {
+      "path": "code/gcp/test_evaluate_uavgs_lidar_rectangular_roi_v1.py",
+      "bytes": 2402,
+      "sha256": "22a34be0a20f6850f750f1e093eab2ee7677f5fbf178af3f0bcf4a69f8a1b453"
+    },
+    {
+      "path": "code/gcp/test_metric_depth_packet.py",
+      "bytes": 18887,
+      "sha256": "30d945dc36dde6bef9415db4d9ed50f9484a311dc66ca304f5ec09825e5fc43e"
+    },
+    {
+      "path": "code/gcp/triangulate_gcp_points.py",
+      "bytes": 12616,
+      "sha256": "ff611498fa7f156bc64be21db9be8f7084967a43a6e8fbce6df28cb5aeded032"
+    },
+    {
+      "path": "code/gcp/verify_m3m_gcp_lidar_formal_v1.py",
+      "bytes": 18874,
+      "sha256": "836795635fd483ba9ef37cc9f69f6e666ab46f65365c29fd4777d37ef815d91d"
+    },
+    {
+      "path": "configs/m3m_gcp_lidar_formal_artifact_schema_v1.json",
+      "bytes": 14766,
+      "sha256": "6d18ccf30c12d070c1d6a692ac8c81024799f44028a487b9fe1f8c2a8cf38c1e"
+    },
+    {
+      "path": "configs/m3m_gcp_lidar_formal_v1.json",
+      "bytes": 16803,
+      "sha256": "b38a0b429969c682a7a7e44c03f02a2fa3545763751dea970f98889c62a61206"
+    },
+    {
+      "path": "configs/m3m_gcp_native_quarter_current.json",
+      "bytes": 19991,
+      "sha256": "2d657742eb8dddb7d642a801d24630a0531ba8b6098d657d031ebbe6fa5f6bfb"
+    },
+    {
+      "path": "configs/m3m_gcp_native_quarter_protocol_release_v2.json",
+      "bytes": 1287,
+      "sha256": "7bf9db0c62bb0bae9ecca06b97b08fcd5f26913e52f9dd2a29745b09e6ffe8e6"
+    },
+    {
+      "path": "configs/m3m_gcp_native_quarter_rgb_quality_v1.json",
+      "bytes": 6882,
+      "sha256": "1ebb6524d4ffcfceab6abafe2dae8ebd9835e57cc33f4e9985728d54160e4a26"
+    },
+    {
+      "path": "configs/uavgs_image_defined_rectangular_roi_v1.json",
+      "bytes": 5611,
+      "sha256": "ad5eed14d9260f7d833ac1c01b19438ab4ffeb60dec644e5fe466982644a8cf7"
+    },
+    {
+      "path": "docs/GS_GCP_NATIVE_QUARTER_ACTIVE_PROTOCOL_V2.md",
+      "bytes": 17660,
+      "sha256": "a180eee2a285fff1186b8ec385c383e5eaeb2e7cb4d99f439ee5b6cdc656df7c"
+    },
+    {
+      "path": "docs/M3M_GCP_LIDAR_FORMAL_PROTOCOL_V1.md",
+      "bytes": 13820,
+      "sha256": "88e0173a874d9902f85e38c043e7f85b144720b143fc2e5bb1959800bc063b76"
+    },
+    {
+      "path": "docs/M3M_GCP_NATIVE_QUARTER_RGB_QUALITY_V1.md",
+      "bytes": 5431,
+      "sha256": "cf0163cc0bdcd06c7e7b9aa2850a26276b03fb9546a00da4570ae292827812fa"
+    },
+    {
+      "path": "docs/metric_depth_packet/METRIC_DEPTH_PACKET_SEMANTICS_20260626.md",
+      "bytes": 4982,
+      "sha256": "60fd8621438480b84511e036d6300142daed85d4986b67c8593802946e02d78b"
+    },
+    {
+      "path": "reuse/evaluation_reference_v1/build_reference_bundle.py",
+      "bytes": 4906,
+      "sha256": "7499033fa11dd7ef8ea8f5fc8b420179004ba43562ca93564cd7ee25f0ddb3d2"
+    },
+    {
+      "path": "reuse/evaluation_reference_v1/native_mesh/exact_voxel_union.py",
+      "bytes": 2614,
+      "sha256": "1918a4374f10eeab43932f74b828337903fb8344b3fe7ac2a912f46c361ed27a"
+    },
+    {
+      "path": "reuse/evaluation_reference_v1/native_mesh/mesh_score.py",
+      "bytes": 9491,
+      "sha256": "f6240eb6565dbc93101b0e17e6a9147ce5bb74cc5c6301fb27b16093d539b730"
+    },
+    {
+      "path": "reuse/evaluation_reference_v1/PROVENANCE.json",
+      "bytes": 940,
+      "sha256": "f8386802f675db003b9a072f5a1184b9cd3ab274520bcf09763d472840f2ae56"
+    },
+    {
+      "path": "reuse/evaluation_reference_v1/README.md",
+      "bytes": 7375,
+      "sha256": "41030d9603d18afdcba55e549b018ae21e546fa6259c8d77fb938373c876d844"
+    },
+    {
+      "path": "reuse/evaluation_reference_v1/requirements-lidar-observed.txt",
+      "bytes": 329,
+      "sha256": "f6ed4b2e0c6476794b055672f2294eb51e52ff87e6caa4be97746117ea20281c"
+    },
+    {
+      "path": "reuse/evaluation_reference_v1/score_native_mesh.py",
+      "bytes": 1829,
+      "sha256": "3e14a741ce2883d617af275e0cea2b3dda3632f31c8470b2a1ff88eb421ba132"
+    },
+    {
+      "path": "reuse/evaluation_reference_v1/validate_reference.py",
+      "bytes": 7411,
+      "sha256": "d1a2a32ebe9850c557e82673038e5d34a86de9d1611dc54b6705aa04da68b2df"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7375,
+      "sha256": "41030d9603d18afdcba55e549b018ae21e546fa6259c8d77fb938373c876d844",
+      "source": "reuse/evaluation_reference_v1/README.md"
+    },
+    {
+      "path": "START_HERE.md",
+      "bytes": 161,
+      "sha256": "5be4fbbb94a61267f44bda4427b727f70fc668a0f7c5655a2ac594db0ab4a669"
+    }
+  ],
+  "scope": "reference source and synthetic checks; no datasets, credentials, weights or experiment controllers",
+  "scientific_core_modified": false,
+  "portable_source_reference_not_generic_dataset_cli": true
+}

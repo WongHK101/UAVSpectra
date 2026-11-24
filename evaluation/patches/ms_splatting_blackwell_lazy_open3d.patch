@@ -1,0 +1,18 @@
+diff --git a/mmsplat/mmsplat_model.py b/mmsplat/mmsplat_model.py
+--- a/mmsplat/mmsplat_model.py
++++ b/mmsplat/mmsplat_model.py
+@@ -8,4 +8,3 @@
+ from pathlib import Path
+ import torch
+ import numpy as np
+-import open3d.ml.torch as ml3d
+@@ -423,6 +422,9 @@ class MMSplatModel(Model):
+         feature_input_dim = self.config.feature_input_dim + additional_input_dim
+ 
+         if self.config.mlp_type == "standard" and (self.config.use_neighbouring_features or self.config.use_cosine_features):
++            # Open3D is optional for the published Joint-Optimized recipe.
++            # Import it only when a KNN-dependent feature path is requested.
++            import open3d.ml.torch as ml3d
+             self.k = self.config.knn_size
+             self.knnsearch = ml3d.layers.KNNSearch(return_distances=True)
+             self.knn_index_reshape = None

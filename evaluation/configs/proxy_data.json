@@ -1,0 +1,8 @@
+{
+  "road": {"scene_sha256": "0dfb108333852c5f48ed03e0da9d9d27f3b311820cd5ef2bc02b9c88985527a0", "target_count": 12},
+  "five_k": {"scene_sha256": "3956eb9b550c1345aba4d1b08df5f92d00ef7e68c01a42a9ab3e666c2705c31c", "target_count": 13},
+  "eucalyptus": {"scene_sha256": "db88d8043939378e09b04001b4e07fffba3fd9779d6ac8d5ab71a7fd1e4048d5", "target_count": 19},
+  "maize": {"scene_sha256": "4067ad33898a274a141eac556663243e23b492d768d8f0ba34211b5574e0bcc0", "target_count": 11},
+  "cassava": {"scene_sha256": "eb95e71758ef1c3ec381a4152c1eff8fd6f9e04b4c35837d91a34f67c36d7b1c", "target_count": 15},
+  "papaya": {"scene_sha256": "e3406232092767073729405532c25fbb643d5cbf0bf791794c4769d67d5b4c85", "target_count": 26}
+}

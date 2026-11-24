@@ -1,0 +1,397 @@
+import argparse
+import json
+import os
+import re
+import shutil
+from pathlib import Path
+from typing import Dict, List, Tuple
+
+import numpy as np
+from plyfile import PlyData, PlyElement
+
+from utils.sh_utils import C0
+
+
+FALSE_COLOR_PRODUCTS = {
+    "false_color_nir_r_g": ("NIR", "R", "G"),
+    "false_color_re_nir_r": ("RE", "NIR", "R"),
+    "false_color_nir_re_g": ("NIR", "RE", "G"),
+}
+
+INDEX_PSEUDOCOLOR_COLORMAP = "ColorBrewer RdYlGn"
+INDEX_PSEUDOCOLOR_INPUT_RANGE = [-1.0, 1.0]
+INDEX_PSEUDOCOLOR_STOPS = np.array([
+    [0.00, 0.6471, 0.0000, 0.1490],
+    [0.10, 0.8431, 0.1882, 0.1529],
+    [0.20, 0.9569, 0.4275, 0.2627],
+    [0.30, 0.9922, 0.6824, 0.3804],
+    [0.40, 0.9961, 0.8784, 0.5451],
+    [0.50, 1.0000, 1.0000, 0.7490],
+    [0.60, 0.8510, 0.9373, 0.5451],
+    [0.70, 0.6510, 0.8510, 0.4157],
+    [0.80, 0.4000, 0.7412, 0.3882],
+    [0.90, 0.1020, 0.5961, 0.3137],
+    [1.00, 0.0000, 0.4078, 0.2157],
+], dtype=np.float32)
+
+
+def _atomic_write_text(path: Path, text: str, encoding: str = "utf-8") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_name(f"{path.name}.tmp.{os.getpid()}")
+    try:
+        tmp_path.write_text(text, encoding=encoding)
+        tmp_path.replace(path)
+    finally:
+        if tmp_path.exists():
+            tmp_path.unlink()
+
+
+def _load_vertex(path: Path):
+    ply = PlyData.read(str(path))
+    if "vertex" not in ply:
+        raise ValueError(f"No vertex element in: {path}")
+    return ply, ply["vertex"].data
+
+
+def _rewrite_model_path(cfg_text: str, new_model_path: str) -> str:
+    new_model_path = str(new_model_path).replace("\\", "/")
+
+    def repl(match):
+        quote = match.group(2)
+        return f"{match.group(1)}{quote}{new_model_path}{quote}"
+
+    out, count = re.subn(r"(model_path\s*=\s*)(['\"])[^'\"]+(['\"])", repl, cfg_text, count=1)
+    if count == 0:
+        text = cfg_text.strip()
+        if text.startswith("Namespace(") and text.endswith(")"):
+            out = text[:-1] + f", model_path='{new_model_path}')"
+        else:
+            out = cfg_text
+    return out
+
+
+def _resolve_iteration(model_dir: Path, iteration: int) -> int:
+    if iteration is not None:
+        return int(iteration)
+    point_cloud_root = model_dir / "point_cloud"
+    candidates = []
+    for child in point_cloud_root.glob("iteration_*"):
+        try:
+            candidates.append(int(child.name.split("_")[-1]))
+        except Exception:
+            continue
+    if not candidates:
+        raise FileNotFoundError(f"No point_cloud/iteration_* found under: {model_dir}")
+    return max(candidates)
+
+
+def _resolve_ply(model_dir: Path, iteration: int) -> Path:
+    resolved_iter = _resolve_iteration(model_dir, iteration)
+    ply_path = model_dir / "point_cloud" / f"iteration_{resolved_iter}" / "point_cloud.ply"
+    if not ply_path.exists():
+        raise FileNotFoundError(f"PLY not found: {ply_path}")
+    return ply_path
+
+
+def _field_groups(vertex) -> Tuple[List[str], List[str], List[str], List[str]]:
+    names = list(vertex.dtype.names or [])
+    f_dc = sorted([n for n in names if n.startswith("f_dc_")], key=lambda x: int(x.split("_")[-1]))
+    f_rest = sorted([n for n in names if n.startswith("f_rest_")], key=lambda x: int(x.split("_")[-1]))
+    scale = sorted([n for n in names if n.startswith("scale_")], key=lambda x: int(x.split("_")[-1]))
+    rot = sorted([n for n in names if n.startswith("rot_")], key=lambda x: int(x.split("_")[-1]))
+    return f_dc, f_rest, scale, rot
+
+
+def _stack_fields(vertex, names: List[str]) -> np.ndarray:
+    if not names:
+        return np.zeros((len(vertex), 0), dtype=np.float32)
+    return np.stack([np.asarray(vertex[name], dtype=np.float32) for name in names], axis=1)
+
+
+def _dc_coeff_to_scalar(dc_coeff: np.ndarray) -> np.ndarray:
+    return np.clip(dc_coeff * C0 + 0.5, 0.0, 1.0)
+
+
+def _rgb_to_dc_coeff(rgb: np.ndarray) -> np.ndarray:
+    return (rgb - 0.5) / C0
+
+
+def _extract_model_payload(model_dir: Path, iteration: int) -> Dict[str, object]:
+    ply_path = _resolve_ply(model_dir, iteration)
+    ply, vertex = _load_vertex(ply_path)
+    f_dc_names, f_rest_names, scale_names, rot_names = _field_groups(vertex)
+    if len(f_dc_names) != 3:
+        raise ValueError(f"Expected exactly 3 f_dc fields in: {ply_path}")
+    if len(f_rest_names) % 3 != 0:
+        raise ValueError(f"Expected f_rest_* count divisible by 3 in: {ply_path}")
+
+    dc_channels = _stack_fields(vertex, f_dc_names)
+    rest_channels = _stack_fields(vertex, f_rest_names).reshape(len(vertex), 3, -1)
+    dc_coeff = dc_channels.mean(axis=1)
+    rest_coeff = rest_channels.mean(axis=1)
+
+    return {
+        "model_dir": model_dir,
+        "iteration": _resolve_iteration(model_dir, iteration),
+        "ply": ply,
+        "vertex": vertex,
+        "ply_path": ply_path,
+        "f_dc_names": f_dc_names,
+        "f_rest_names": f_rest_names,
+        "scale_names": scale_names,
+        "rot_names": rot_names,
+        "dc_coeff": dc_coeff,
+        "dc_value": _dc_coeff_to_scalar(dc_coeff),
+        "rest_coeff": rest_coeff,
+    }
+
+
+def _max_abs_diff(a: np.ndarray, b: np.ndarray) -> float:
+    return float(np.max(np.abs(np.asarray(a, dtype=np.float64) - np.asarray(b, dtype=np.float64))))
+
+
+def _assert_topology_consistency(models: Dict[str, Dict[str, object]], require_opacity_match: bool, tol: float) -> None:
+    names = list(models.keys())
+    ref = models[names[0]]
+    ref_vertex = ref["vertex"]
+    xyz_fields = ["x", "y", "z"]
+    ref_xyz = _stack_fields(ref_vertex, xyz_fields)
+    ref_scale = _stack_fields(ref_vertex, ref["scale_names"])
+    ref_rot = _stack_fields(ref_vertex, ref["rot_names"])
+    ref_opacity = np.asarray(ref_vertex["opacity"], dtype=np.float32)
+
+    for name in names[1:]:
+        cur = models[name]
+        cur_vertex = cur["vertex"]
+        if len(cur_vertex) != len(ref_vertex):
+            raise ValueError(f"Gaussian count mismatch: ref={len(ref_vertex)} vs {name}={len(cur_vertex)}")
+        xyz_diff = _max_abs_diff(ref_xyz, _stack_fields(cur_vertex, xyz_fields))
+        scale_diff = _max_abs_diff(ref_scale, _stack_fields(cur_vertex, cur["scale_names"]))
+        rot_diff = _max_abs_diff(ref_rot, _stack_fields(cur_vertex, cur["rot_names"]))
+        if xyz_diff > tol:
+            raise ValueError(f"xyz mismatch for {name}: max_abs_diff={xyz_diff}")
+        if scale_diff > tol:
+            raise ValueError(f"scale mismatch for {name}: max_abs_diff={scale_diff}")
+        if rot_diff > tol:
+            raise ValueError(f"rotation mismatch for {name}: max_abs_diff={rot_diff}")
+        if require_opacity_match:
+            opacity_diff = _max_abs_diff(ref_opacity, np.asarray(cur_vertex["opacity"], dtype=np.float32))
+            if opacity_diff > tol:
+                raise ValueError(f"opacity mismatch for {name}: max_abs_diff={opacity_diff}")
+
+
+def _make_colormap(values: np.ndarray) -> np.ndarray:
+    values = np.clip(values, 0.0, 1.0)
+    rgb = np.empty((values.shape[0], 3), dtype=np.float32)
+    for c in range(3):
+        rgb[:, c] = np.interp(values, INDEX_PSEUDOCOLOR_STOPS[:, 0], INDEX_PSEUDOCOLOR_STOPS[:, c + 1])
+    return rgb
+
+
+def _write_product_model(out_dir: Path, out_iter: int, reference_model_dir: Path, reference_vertex,
+                         vertex_out, text_mode: bool, product_metadata: Dict[str, object] = None) -> None:
+    point_cloud_dir = out_dir / "point_cloud" / f"iteration_{out_iter}"
+    point_cloud_dir.mkdir(parents=True, exist_ok=True)
+    PlyData([PlyElement.describe(vertex_out, "vertex")], text=text_mode).write(str(point_cloud_dir / "point_cloud.ply"))
+
+    for aux_name in ("cameras.json", "input.ply", "exposure.json"):
+        src = reference_model_dir / aux_name
+        if src.exists():
+            shutil.copy2(src, out_dir / aux_name)
+
+    cfg_path = reference_model_dir / "cfg_args"
+    if cfg_path.exists():
+        cfg_text = cfg_path.read_text(encoding="utf-8", errors="ignore")
+        _atomic_write_text(out_dir / "cfg_args", _rewrite_model_path(cfg_text, str(out_dir)), encoding="utf-8")
+
+    summary = {
+        "out_iter": out_iter,
+        "gaussian_count": int(len(reference_vertex)),
+    }
+    if product_metadata:
+        summary.update(product_metadata)
+    _atomic_write_text(out_dir / "product_summary.json", json.dumps(summary, indent=2), encoding="utf-8")
+
+
+def _build_false_color_vertex(reference_payload: Dict[str, object], models: Dict[str, Dict[str, object]], mapping: Tuple[str, str, str]):
+    ref_vertex = reference_payload["vertex"]
+    out = ref_vertex.copy()
+    f_dc_names = reference_payload["f_dc_names"]
+    f_rest_names = reference_payload["f_rest_names"]
+    sh_coeff_count = len(f_rest_names) // 3
+
+    for channel_idx, band_name in enumerate(mapping):
+        band_payload = models[band_name]
+        out[f_dc_names[channel_idx]] = np.asarray(band_payload["dc_coeff"], dtype=out.dtype[f_dc_names[channel_idx]])
+        start = channel_idx * sh_coeff_count
+        end = start + sh_coeff_count
+        coeff_block = np.asarray(band_payload["rest_coeff"], dtype=np.float32)
+        for coeff_idx, field_name in enumerate(f_rest_names[start:end]):
+            out[field_name] = coeff_block[:, coeff_idx].astype(out.dtype[field_name])
+    return out
+
+
+def _build_index_vertex(reference_payload: Dict[str, object], rgb_values: np.ndarray):
+    ref_vertex = reference_payload["vertex"]
+    out = ref_vertex.copy()
+    f_dc_names = reference_payload["f_dc_names"]
+    f_rest_names = reference_payload["f_rest_names"]
+    dc_coeff = _rgb_to_dc_coeff(rgb_values.astype(np.float32))
+    for idx, field_name in enumerate(f_dc_names):
+        out[field_name] = dc_coeff[:, idx].astype(out.dtype[field_name])
+    for field_name in f_rest_names:
+        out[field_name] = np.zeros(len(out), dtype=out.dtype[field_name])
+    return out
+
+
+def _parse_csv_names(value: str, valid_names: List[str]) -> List[str]:
+    if value is None or str(value).strip().lower() in ("", "all", "*"):
+        return list(valid_names)
+    requested = [item.strip().lower() for item in str(value).split(",") if item.strip()]
+    invalid = sorted(set(requested) - set(valid_names))
+    if invalid:
+        raise ValueError(f"Invalid product names {invalid}; valid names are {valid_names}")
+    return requested
+
+
+def build_products(model_dirs: Dict[str, Path], iterations: Dict[str, int], out_root: Path, savi_l: float,
+                   eps: float, require_opacity_match: bool, tol: float,
+                   false_color_names: List[str] = None, index_names: List[str] = None) -> None:
+    payloads = {band: _extract_model_payload(model_dir, iterations.get(band)) for band, model_dir in model_dirs.items()}
+    _assert_topology_consistency(payloads, require_opacity_match=require_opacity_match, tol=tol)
+
+    ref_name = "G" if "G" in payloads else next(iter(payloads.keys()))
+    ref_payload = payloads[ref_name]
+    ref_model_dir = Path(ref_payload["model_dir"])
+    out_iter = int(ref_payload["iteration"])
+
+    out_root.mkdir(parents=True, exist_ok=True)
+    selected_false_color = list(FALSE_COLOR_PRODUCTS.keys()) if false_color_names is None else list(false_color_names)
+    for product_name in selected_false_color:
+        mapping = FALSE_COLOR_PRODUCTS[product_name]
+        vertex_out = _build_false_color_vertex(ref_payload, payloads, mapping)
+        _write_product_model(
+            out_root / product_name,
+            out_iter,
+            ref_model_dir,
+            ref_payload["vertex"],
+            vertex_out,
+            getattr(ref_payload["ply"], "text", False),
+            product_metadata={
+                "product_type": "false_color",
+                "band_mapping": list(mapping),
+                "visualization_only": True,
+            },
+        )
+
+    nir = payloads["NIR"]["dc_value"]
+    red = payloads["R"]["dc_value"]
+    green = payloads["G"]["dc_value"]
+    red_edge = payloads["RE"]["dc_value"]
+    indices = {
+        "ndvi": (nir - red) / (nir + red + eps),
+        "ndre": (nir - red_edge) / (nir + red_edge + eps),
+        "gndvi": (nir - green) / (nir + green + eps),
+        "savi": ((nir - red) / (nir + red + savi_l + eps)) * (1.0 + savi_l),
+        "osavi": (nir - red) / (nir + red + 0.16 + eps),
+    }
+
+    selected_indices = list(indices.keys()) if index_names is None else list(index_names)
+    for name in selected_indices:
+        values = indices[name]
+        gray01 = np.clip((values + 1.0) * 0.5, 0.0, 1.0)
+        gray_rgb = np.repeat(gray01[:, None], 3, axis=1)
+        pseudo_rgb = _make_colormap(gray01)
+        gray_vertex = _build_index_vertex(ref_payload, gray_rgb)
+        pseudo_vertex = _build_index_vertex(ref_payload, pseudo_rgb)
+        _write_product_model(
+            out_root / f"{name}_gray",
+            out_iter,
+            ref_model_dir,
+            ref_payload["vertex"],
+            gray_vertex,
+            getattr(ref_payload["ply"], "text", False),
+            product_metadata={
+                "product_type": "spectral_index_gray",
+                "index_name": name.upper(),
+                "index_input_range": INDEX_PSEUDOCOLOR_INPUT_RANGE,
+                "display_mapping": "gray01 = clip((index + 1) * 0.5, 0, 1)",
+                "visualization_only": True,
+            },
+        )
+        _write_product_model(
+            out_root / f"{name}_pseudocolor",
+            out_iter,
+            ref_model_dir,
+            ref_payload["vertex"],
+            pseudo_vertex,
+            getattr(ref_payload["ply"], "text", False),
+            product_metadata={
+                "product_type": "spectral_index_pseudocolor",
+                "index_name": name.upper(),
+                "index_input_range": INDEX_PSEUDOCOLOR_INPUT_RANGE,
+                "display_mapping": "gray01 = clip((index + 1) * 0.5, 0, 1)",
+                "pseudocolor_colormap": INDEX_PSEUDOCOLOR_COLORMAP,
+                "pseudocolor_low_mid_high": ["red: low index", "yellow: near zero", "green: high index"],
+                "visualization_only": True,
+            },
+        )
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description="Build SpectralIndexGS false-color and index proxy products from four band models.")
+    ap.add_argument("--g_model_dir", required=True)
+    ap.add_argument("--r_model_dir", required=True)
+    ap.add_argument("--re_model_dir", required=True)
+    ap.add_argument("--nir_model_dir", required=True)
+    ap.add_argument("--g_iter", type=int, default=None)
+    ap.add_argument("--r_iter", type=int, default=None)
+    ap.add_argument("--re_iter", type=int, default=None)
+    ap.add_argument("--nir_iter", type=int, default=None)
+    ap.add_argument("--out_root", required=True)
+    ap.add_argument("--savi_l", type=float, default=0.5)
+    ap.add_argument("--eps", type=float, default=1e-6)
+    ap.add_argument("--require_opacity_match", type=str, default="true")
+    ap.add_argument("--tol", type=float, default=1e-6)
+    ap.add_argument("--skip_false_color", action="store_true", help="Only build spectral-index products.")
+    ap.add_argument("--false_color_names", default="all", help="Comma-separated false-color product names or 'all'.")
+    ap.add_argument("--index_names", default="all", help="Comma-separated index names among ndvi,ndre,gndvi,savi,osavi or 'all'.")
+    args = ap.parse_args()
+
+    require_opacity_match = str(args.require_opacity_match).strip().lower() not in ("0", "false", "no", "off")
+    false_color_names = [] if args.skip_false_color else _parse_csv_names(args.false_color_names, list(FALSE_COLOR_PRODUCTS.keys()))
+    valid_index_names = ["ndvi", "ndre", "gndvi", "savi", "osavi"]
+    index_names = _parse_csv_names(args.index_names, valid_index_names)
+    build_products(
+        model_dirs={
+            "G": Path(args.g_model_dir).resolve(),
+            "R": Path(args.r_model_dir).resolve(),
+            "RE": Path(args.re_model_dir).resolve(),
+            "NIR": Path(args.nir_model_dir).resolve(),
+        },
+        iterations={
+            "G": args.g_iter,
+            "R": args.r_iter,
+            "RE": args.re_iter,
+            "NIR": args.nir_iter,
+        },
+        out_root=Path(args.out_root).resolve(),
+        savi_l=float(args.savi_l),
+        eps=float(args.eps),
+        require_opacity_match=require_opacity_match,
+        tol=float(args.tol),
+        false_color_names=false_color_names,
+        index_names=index_names,
+    )
+    print(json.dumps({
+        "out_root": str(Path(args.out_root).resolve()),
+        "products": false_color_names + [
+            product
+            for name in index_names
+            for product in (f"{name}_gray", f"{name}_pseudocolor")
+        ],
+    }, indent=2))
+
+
+if __name__ == "__main__":
+    main()

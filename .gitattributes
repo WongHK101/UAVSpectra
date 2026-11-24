@@ -1,0 +1,2 @@
+# Preserve the release bytes used by the evaluator's reference manifest.
+evaluation/third_party/reference/** -text

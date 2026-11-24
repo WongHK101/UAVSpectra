@@ -1,0 +1,15 @@
+{
+  "schema": "gs_gcp_evaluation_reference_provenance_v1",
+  "baseline_repository_commit": "52df095d6df61e738c5f9b4b43f076bee289a462",
+  "mesh_source": "baseline-correction-run-20260922/received/extracted/mesh_score.py",
+  "original_terminal_archive_sha256": "ad6d5b10d711f2404c44fbf1ebe0a33d49d9e8dcfd268f97e9da8007abc6c799",
+  "unchanged_frozen_files": {
+    "native_mesh/mesh_score.py": "f6240eb6565dbc93101b0e17e6a9147ce5bb74cc5c6301fb27b16093d539b730",
+    "native_mesh/exact_voxel_union.py": "1918a4374f10eeab43932f74b828337903fb8344b3fe7ac2a912f46c361ed27a"
+  },
+  "rectangular_core_sha256": "2854ac30ca24e7c5dc2340b039777d98f56d1ace9851c7d6b713dce439313223",
+  "runtime_composition": "exact_voxel_union.install(mesh_score), then mesh_score.evaluate; rectangle + formal NN core",
+  "adapters_weights_datasets_included": false,
+  "new_project_coordinate_contract_required": true,
+  "is_universal_or_globally_frozen_standard": false
+}

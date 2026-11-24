@@ -1,0 +1,49 @@
+{
+  "reference_manifest_sha256": "c57a1b1eb79c881246d8d062ef98fc85ab34d538ec03c3ae4cec6d526cdb215f",
+  "scenes": {
+    "road": {
+      "sidecar": {
+        "path": "calibration/road/sidecar.json",
+        "sha256": "09c49c8fe1c364881959f83e57fac9d9cb9ccc3e20fcc86aa6cec4f315227b28"
+      },
+      "geometry": {
+        "path": "calibration/road/geometry.json",
+        "sha256": "d1e0560db503a78301acaca261861878a44b35d4e2500e2abf065bd2a434bb5e"
+      },
+      "surface_list": {
+        "path": "calibration/road/surface_views.json",
+        "sha256": "99a0facf73b1356c3bd55fcec099a45bc4e3c022b1c9780349fafcdffd7362ca"
+      },
+      "binding": {
+        "path": "calibration/road/lidar_binding.json",
+        "sha256": "1c0c220167fd21b85bc3aa2caa923acc69ff26cea3ce431eaddb8b36d181a228"
+      },
+      "targets": {
+        "path": "annotations/survey_points.csv",
+        "sha256": "45b61e76b3548cb378436609c9c507fb8adacd2bbcc3d18034df179bc03305cc"
+      }
+    },
+    "five_k": {
+      "sidecar": {
+        "path": "calibration/five_k/sidecar.json",
+        "sha256": "42b00fef8ccfa55a3f617c28965d15382a55814966cb1aaf1e22e7befb6bdbed"
+      },
+      "geometry": {
+        "path": "calibration/five_k/geometry.json",
+        "sha256": "1c045164c1b34545eb00ee4ba0ab65b2dbf311f2b926cabf041a730d7beed7ad"
+      },
+      "surface_list": {
+        "path": "calibration/five_k/surface_views.json",
+        "sha256": "205ae6af394bce60a25a96a21a1185ad952932e934df0f708ff62093a1be7f0f"
+      },
+      "binding": {
+        "path": "calibration/five_k/lidar_binding.json",
+        "sha256": "990988c6ea474075f113d363f025e39d1fd357d9647312daccf770a719c4f27f"
+      },
+      "targets": {
+        "path": "annotations/survey_points.csv",
+        "sha256": "45b61e76b3548cb378436609c9c507fb8adacd2bbcc3d18034df179bc03305cc"
+      }
+    }
+  }
+}

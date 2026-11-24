@@ -1,0 +1,60 @@
+{
+  "schema": "mssplat_joint_optimized_120k_protocol_v1",
+  "method": "MS-Splatting",
+  "upstream_repository": "https://github.com/j-gruen/MS-Splatting",
+  "upstream_commit": "21bf7123fea39a699af19562dada965fd36fc07e",
+  "local_change": "lazy optional Open3D import only; KNN feature paths disabled",
+  "seed": 42,
+  "training": {
+    "from_scratch": true,
+    "formal_iterations": 120000,
+    "final_step": 119999,
+    "checkpoint_continuation": false,
+    "metric_based_early_stop": false,
+    "checkpoint_selection": false,
+    "save_steps": [
+      60000,
+      119999
+    ],
+    "refine_every": 300,
+    "densification_strategy": "max_average",
+    "stop_split_at": 60000,
+    "rgb_position_delay": 500,
+    "spectral_position_delay": 32000,
+    "spectral_opacity_delay": 32000,
+    "spectral_sampling_delay": 30000,
+    "densification_pause": [
+      29000,
+      32001
+    ],
+    "camera_optimization": "official frozen recipe"
+  },
+  "channels": {
+    "D": 3,
+    "G": 1,
+    "R": 1,
+    "RE": 1,
+    "NIR": 1,
+    "spherical_harmonics": [
+      "D",
+      "G",
+      "R",
+      "RE",
+      "NIR"
+    ]
+  },
+  "controlled_comparison": {
+    "Self5": {
+      "scenes": [
+        "Road",
+        "Eucalyptus",
+        "Maize-02",
+        "Cassava",
+        "Papaya"
+      ],
+      "preprocessing": "common frozen RGB-derived SfM, cameras, initial points, capture-group split, and scalar definitions",
+      "stock_training_masks_modified": false,
+      "aggregation": "equal scene"
+    }
+  }
+}
