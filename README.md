@@ -3,11 +3,14 @@
 UAV RGB-multispectral reconstruction with GCP, LiDAR, image-derived geometry,
 appearance and spectral-product evaluation. UMGS is the reference baseline.
 
-**Dataset:** [Baidu Netdisk](https://pan.baidu.com/s/1IYIUwH7E1hskBZE03TE1eQ?pwd=hy9v) (access code: `hy9v`).
+**Dataset:** [Baidu Netdisk](https://pan.baidu.com/s/11o_eXMEXjP4yH16395O5nQ?pwd=fcif) (access code: `fcif`).
 
 Under `UAVSpectra-dataset/`, `all21scenes/` groups the 21 scene image folders,
-17 OpenMVS proxy meshes and six Urban LiDAR references. `6scenesinpaper/`
-contains the six-scene comparison used in the paper.
+17 OpenMVS proxy meshes, and airborne LiDAR for all six Urban scenes.
+`all21scenes/GCP/` contains their manual image annotations, surveyed coordinates
+and control/checkpoint assignments. `6scenesinpaper/`
+contains the six-scene comparison used in the paper. Urban50K retains one extra
+raw capture (0001); use the supplied 2,208-view manifest for that scene.
 
 ## Layout
 
