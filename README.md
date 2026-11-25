@@ -3,9 +3,11 @@
 UAV RGB-multispectral reconstruction with GCP, LiDAR, image-derived geometry,
 appearance and spectral-product evaluation. UMGS is the reference baseline.
 
-**Dataset:** [UAVSpectra on Zenodo](https://doi.org/10.5281/zenodo.23930187).
-The record is public; file access is currently restricted. Reviewers can use
-the access link supplied with the manuscript.
+**Dataset:** [Baidu Netdisk](https://pan.baidu.com/s/1IYIUwH7E1hskBZE03TE1eQ?pwd=hy9v) (access code: `hy9v`).
+
+Under `UAVSpectra-dataset/`, `all21scenes/` groups the 21 scene image folders,
+17 OpenMVS proxy meshes and six Urban LiDAR references. `6scenesinpaper/`
+contains the six-scene comparison used in the paper.
 
 ## Layout
 
@@ -14,9 +16,11 @@ the access link supplied with the manuscript.
 - `evaluate.py`: GCP, LiDAR and proxy evaluation entry point.
 - `unpack_data.py`: extract the accompanying scene downloads.
 
-The six-scene dataset contains the RGB and narrowband captures, prepared inputs,
+The six-scene comparison package contains the RGB and narrowband captures, prepared inputs,
 camera records, fixed splits and proxy depths. Urban3K and Urban5K also include
-surveyed points and airborne LiDAR. Extract the scene downloads before scoring:
+the manual image annotations, surveyed coordinates and airborne LiDAR used for
+scoring. Download the ZIPs from `6scenesinpaper/` into `../UAVSpectra-dataset/`,
+then extract them:
 
 ```bash
 python unpack_data.py --data ../UAVSpectra-dataset
